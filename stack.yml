@@ -1,0 +1,67 @@
+version: '3.9'
+
+services:
+  broker-mqtt:
+    image: eclipse-mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    networks:
+      - broker_network
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+  influxdb:
+    image: influxdb:latest
+    ports:
+      - "8086:8086"
+    networks:
+      - db_network
+      - grafana_network
+    restart: unless-stopped
+    volumes:
+      - influxdbdata:/var/lib/influxdb2
+      - ./config.yml:/etc/influxdb2/config.yml
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=adminpassword
+      - DOCKER_INFLUXDB_INIT_ORG=org-sprc
+      - DOCKER_INFLUXDB_INIT_BUCKET=sprc-iotdb
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=token-sprc 
+
+  adaptor:
+    depends_on:
+      - broker-mqtt
+      - influxdb
+    image: adaptor
+    build: ./
+    env_file: ./adaptor.env
+    networks:
+      - db_network
+      - broker_network
+    tty: true
+
+  grafana:
+    depends_on:
+      - influxdb
+    image: grafana/grafana:latest
+    ports:
+      - "80:3000"
+    volumes:
+      - grafanadata:/var/lib/grafana
+      - ./grafana-provisioning/:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_USER=asistent
+      - GF_SECURITY_ADMIN_PASSWORD=grafanaSPRC2023
+    networks:
+      - grafana_network
+
+volumes:
+  influxdbdata:
+  grafanadata:
+
+networks:
+  broker_network:
+  db_network:
+  grafana_network:

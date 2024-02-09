@@ -1,0 +1,29 @@
+Ulariu Corina-Elena 344C1
+
+Pentru rezolvarea temei 3 am implementat o platforma pentru
+colectarea, stocarea si vizualizarea de date numerice 
+provenite de la dispozitivele IoT.
+Pentru a porni solutia trebuie rulat scriptul run.sh.
+Solutia contine:
+- fisierul stack.yml care contine descrierea stack-ului,
+format din 4 componente:
+  broker-mqtt, implementat folosind ultima varianta de 
+eclipse-mosquitto,
+  influxdb, pentru care am folosit v2, si pentru care 
+definesc variabilele de mediu, corespunzatoare user-ului 
+si bucket-ului folosit in solutie,
+  adaptor,
+  graphana
+- fisierul adaptor.py contine implementarea serverului
+care se conecteaza la broker, facand subscribe pe toate
+topicurile, dar si la clientul de InfluxDB, urmand ca
+o data ce un client se va conecta la broker si va trimite
+date in formatul json pe un topic format din locatie si statie
+adaptorul, sa verifice daca au fost trimise date de tip int sau
+float, si sa adauge informatiile pentru fiecare dintre ele in
+baza de date.
+In cazul in care variabila de mediu DEBUG_DATA_FLOW este true,
+se vor afisa in log, niste mesaje corespunzatoare.
+- grafana-provisioning unde am salvat setup-ul pentru dashborduri.
+Pentru crearea acestora am folosit in interfata de grafana query-uri
+de flux, dar si transformari din interfata.
